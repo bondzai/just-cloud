@@ -4,8 +4,10 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
-	"os"
+	"strings"
 	"time"
+
+	"github.com/spf13/viper"
 )
 
 type EchoRequest struct {
@@ -18,8 +20,10 @@ type EchoResponse struct {
 }
 
 func main() {
-	port := getEnv("PORT", "8080")
-	serviceName := getEnv("SERVICE_NAME", "just-cloud")
+	initConfig()
+
+	port := viper.GetString("port")
+	serviceName := viper.GetString("service_name")
 
 	mux := http.NewServeMux()
 
@@ -66,9 +70,19 @@ func main() {
 	}
 }
 
-func getEnv(key, fallback string) string {
-	if v := os.Getenv(key); v != "" {
-		return v
+func initConfig() {
+	viper.SetDefault("port", "8080")
+	viper.SetDefault("service_name", "just-cloud")
+
+	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
+	viper.AutomaticEnv()
+
+	viper.SetConfigName("config")
+	viper.SetConfigType("yaml")
+	viper.AddConfigPath(".")
+	if err := viper.ReadInConfig(); err == nil {
+		log.Printf("Using config file: %s", viper.ConfigFileUsed())
+	} else {
+		log.Printf("No config file loaded: %v", err)
 	}
-	return fallback
 }
