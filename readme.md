@@ -1,29 +1,22 @@
-# just-cloud
+# NestJS with Swagger, Docker, and Vercel
 
-A minimal, cloud-neutral HTTP service designed for hands-on practice with
-container deployments across multiple cloud platforms.
-
-Built to stay portable, lightweight, and vendor-agnostic—ideal for exploring
-Cloud Run, DigitalOcean, Render, Fly.io, AWS App Runner, and beyond.
+This project is a NestJS application with built-in Swagger documentation, Docker support, and Vercel deployment configuration.
 
 ## Features
+- **Swagger Documentation**: Available at `/api`.
+- **Health Check**: Endpoint at `/health`.
+- **Docker**: Optimized multi-stage build.
+- **Vercel**: Configured for serverless deployment.
 
-- Simple JSON HTTP API using the standard library (`net/http`)
-- Dockerized, no cloud SDK dependencies
-- Generic Makefile for:
-  - local build/run
-  - Docker build & push
-  - optional Google Cloud Run deployment as a thin adapter
+## Development
 
-## Endpoints
+```bash
+npm install
+npm run start:dev
+```
 
-- `GET /health`  
-  Returns `"OK"` for basic health checks.
-
-- `POST /echo`  
-  Request:
-
-  ```json
-  {
-    "message": "hello cloud"
-  }
+## Docker
+```bash
+docker build -t nest-app .
+docker run -p 3000:3000 nest-app
+```

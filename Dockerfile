@@ -1,33 +1,33 @@
-# ========= Build stage =========
-FROM golang:1.22-alpine AS builder
+# Build stage
+FROM node:20-alpine AS builder
 
 WORKDIR /app
 
-# Pre-copy mod files to leverage Docker layer caching
-COPY go.mod ./
-RUN go mod download
+# Copy configuration files
+COPY package*.json ./
+COPY tsconfig*.json ./
+COPY nest-cli.json ./
 
-# Copy full source
-COPY . .
+# Install dependencies
+RUN npm install
 
-# Build the API binary
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 \
-    go build -o just-cloud ./cmd/api
+# Copy source and build
+COPY src/ ./src/
+RUN npm run build
 
-# ========= Runtime stage =========
-# Distroless base is small and secure, works on any cloud.
-FROM gcr.io/distroless/base-debian12
+# Production stage
+FROM node:20-alpine
 
 WORKDIR /app
 
-COPY --from=builder /app/just-cloud /app/just-cloud
+# Only copy production files
+COPY --from=builder /app/package*.json ./
+COPY --from=builder /app/dist ./dist
 
-# Default envs; can be overridden by platform
-ENV PORT=8080
-ENV SERVICE_NAME="just-cloud"
+# Install production dependencies
+RUN npm install --omit=dev
 
-EXPOSE 8080
+EXPOSE 3000
 
-USER nonroot:nonroot
-
-ENTRYPOINT ["/app/just-cloud"]
+# Use npm script for better signal handling and consistency
+CMD ["npm", "run", "start:prod"]
